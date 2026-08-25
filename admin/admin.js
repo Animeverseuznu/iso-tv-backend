@@ -3,6 +3,7 @@ const ADMIN_ID = "8829101708";
 
 let movies = [];
 
+
 async function api(url, options = {}) {
 
     options.headers = {
@@ -14,116 +15,262 @@ async function api(url, options = {}) {
     const response = await fetch(API + url, options);
 
     if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `HTTP ${response.status}`);
+        throw new Error(await response.text());
     }
 
     return response.json();
 }
 
-async function loadMovies() {
+
+function toast(message) {
+
+    const box = document.getElementById("toast");
+
+    box.textContent = message;
+    box.classList.add("show");
+
+    setTimeout(() => {
+        box.classList.remove("show");
+    }, 2200);
+}
+
+
+async function loadDashboard() {
 
     try {
-        movies = await api("/api/movies");
 
-        updateStats();
-        renderMovies(movies);
+        const stats =
+            await api("/api/admin/stats");
+
+        document.getElementById("totalMovies").textContent =
+            stats.total;
+
+        document.getElementById("vipMovies").textContent =
+            stats.vip;
+
+        document.getElementById("freeMovies").textContent =
+            stats.free;
+
+        document.getElementById("averageRating").textContent =
+            stats.average_rating;
+
+        loadGenres(stats.genres);
+
+        await loadMovies();
+
+        toast("✓ Yangilandi");
 
     } catch (error) {
 
-        alert("API xatosi:\n" + error.message);
-        console.error(error);
+        alert("Dashboard xatosi:\n" + error.message);
     }
 }
 
-function updateStats() {
 
-    document.getElementById("totalMovies").textContent =
-        movies.length;
+async function loadMovies() {
 
-    document.getElementById("vipMovies").textContent =
-        movies.filter(movie => movie.is_vip).length;
+    try {
+
+        movies = await api("/api/movies");
+
+        renderMovies(movies);
+
+        document.getElementById("movieCount").textContent =
+            `${movies.length} ta kino`;
+
+    } catch (error) {
+
+        alert("Kinolarni yuklashda xato:\n" + error.message);
+    }
 }
+
+
+function loadGenres(genres) {
+
+    const select =
+        document.getElementById("genreFilter");
+
+    select.innerHTML =
+        `<option value="">Barcha janrlar</option>`;
+
+    genres.forEach(item => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = item.genre;
+        option.textContent =
+            `${item.genre} (${item.count})`;
+
+        select.appendChild(option);
+    });
+}
+
 
 function renderMovies(list) {
 
-    const box = document.getElementById("movieList");
+    const box =
+        document.getElementById("movieList");
 
     box.innerHTML = "";
 
     if (!list.length) {
+
         box.innerHTML =
-            `<p style="color:#777">Kino topilmadi.</p>`;
+            `<p style="padding:20px;text-align:center">
+                🎬 Kino topilmadi
+            </p>`;
+
         return;
     }
 
     list.forEach(movie => {
 
-        const item = document.createElement("div");
+        const item =
+            document.createElement("div");
 
         item.className = "movie";
 
         item.innerHTML = `
             <div class="movie-title">
                 ${escapeHtml(movie.title)}
-                ${movie.is_vip ? " 👑" : ""}
+
+                ${
+                    movie.is_vip
+                    ? `<span class="badge">VIP</span>`
+                    : ""
+                }
             </div>
 
             <div class="movie-meta">
-                ID: ${movie.id}
-                • ${escapeHtml(movie.genre || "")}
-                • ${movie.year || ""}
-                • ⭐ ${movie.rating || 0}
-                • ${escapeHtml(movie.quality || "")}
+                ID ${movie.id}
+                • ${escapeHtml(movie.genre)}
+                • ${movie.year}
+                • ⭐ ${movie.rating}
+                • ${escapeHtml(movie.quality)}
             </div>
 
-            <button onclick="editMovie(${movie.id})">
-                ✏️ Tahrirlash
-            </button>
+            <div class="movie-actions">
 
-            <button class="delete"
-                    onclick="deleteMovie(${movie.id})">
-                🗑️ O‘chirish
-            </button>
+                <button onclick="editMovie(${movie.id})">
+                    ✏️ Tahrirlash
+                </button>
+
+                <button class="delete"
+                        onclick="deleteMovie(${movie.id})">
+                    🗑 O‘chirish
+                </button>
+
+            </div>
         `;
 
         box.appendChild(item);
     });
 }
 
+
+function filterMovies() {
+
+    const search =
+        document.getElementById("search")
+            .value
+            .trim()
+            .toLowerCase();
+
+    const genre =
+        document.getElementById("genreFilter").value;
+
+    const vip =
+        document.getElementById("vipFilter").value;
+
+    const result =
+        movies.filter(movie => {
+
+            const title =
+                String(movie.title || "")
+                    .toLowerCase();
+
+            const matchSearch =
+                !search ||
+                title.includes(search);
+
+            const matchGenre =
+                !genre ||
+                movie.genre === genre;
+
+            const matchVip =
+                vip === "" ||
+                String(Number(movie.is_vip)) === vip;
+
+            return (
+                matchSearch &&
+                matchGenre &&
+                matchVip
+            );
+        });
+
+    renderMovies(result);
+}
+
+
 async function saveMovie() {
 
     const data = {
-        title: document.getElementById("title").value.trim(),
-        genre: document.getElementById("genre").value.trim(),
-        year: Number(document.getElementById("year").value),
-        rating: Number(document.getElementById("rating").value || 0),
+
+        title:
+            document.getElementById("title")
+                .value.trim(),
+
+        genre:
+            document.getElementById("genre")
+                .value.trim(),
+
+        year:
+            Number(
+                document.getElementById("year")
+                    .value
+            ),
+
+        rating:
+            Number(
+                document.getElementById("rating")
+                    .value || 0
+            ),
+
         quality:
-            document.getElementById("quality").value.trim() || "HD",
+            document.getElementById("quality")
+                .value.trim() || "HD",
+
         description:
-            document.getElementById("description").value.trim(),
+            document.getElementById("description")
+                .value.trim(),
+
         poster:
-            document.getElementById("poster").value.trim(),
+            document.getElementById("poster")
+                .value.trim(),
+
         video_url:
-            document.getElementById("video_url").value.trim(),
+            document.getElementById("video_url")
+                .value.trim(),
+
         is_vip:
-            document.getElementById("is_vip").checked
+            document.getElementById("is_vip")
+                .checked
     };
 
-    if (!data.title) {
-        alert("Kino nomini kiriting.");
+
+    if (!data.title || !data.genre) {
+
+        alert("Kino nomi va janrini kiriting.");
         return;
     }
 
-    if (!data.genre) {
-        alert("Janrni kiriting.");
-        return;
-    }
 
     try {
 
         const id =
-            document.getElementById("movieId").value;
+            document.getElementById("movieId")
+                .value;
 
         if (id) {
 
@@ -135,7 +282,7 @@ async function saveMovie() {
                 }
             );
 
-            alert("✅ Kino yangilandi.");
+            toast("✓ Kino yangilandi");
 
         } else {
 
@@ -147,18 +294,19 @@ async function saveMovie() {
                 }
             );
 
-            alert("✅ Kino qo‘shildi.");
+            toast("✓ Kino qo‘shildi");
         }
 
         resetForm();
-        await loadMovies();
+
+        await loadDashboard();
 
     } catch (error) {
 
         alert("Saqlashda xato:\n" + error.message);
-        console.error(error);
     }
 }
+
 
 function editMovie(id) {
 
@@ -167,18 +315,33 @@ function editMovie(id) {
 
     if (!movie) return;
 
-    document.getElementById("movieId").value = movie.id;
-    document.getElementById("title").value = movie.title || "";
-    document.getElementById("genre").value = movie.genre || "";
-    document.getElementById("year").value = movie.year || "";
-    document.getElementById("rating").value = movie.rating || "";
-    document.getElementById("quality").value = movie.quality || "";
+    document.getElementById("movieId").value =
+        movie.id;
+
+    document.getElementById("title").value =
+        movie.title || "";
+
+    document.getElementById("genre").value =
+        movie.genre || "";
+
+    document.getElementById("year").value =
+        movie.year || "";
+
+    document.getElementById("rating").value =
+        movie.rating || "";
+
+    document.getElementById("quality").value =
+        movie.quality || "";
+
     document.getElementById("description").value =
         movie.description || "";
+
     document.getElementById("poster").value =
         movie.poster || "";
+
     document.getElementById("video_url").value =
         movie.video_url || "";
+
     document.getElementById("is_vip").checked =
         Boolean(movie.is_vip);
 
@@ -190,6 +353,7 @@ function editMovie(id) {
         behavior: "smooth"
     });
 }
+
 
 async function deleteMovie(id) {
 
@@ -213,14 +377,16 @@ async function deleteMovie(id) {
             }
         );
 
-        await loadMovies();
+        toast("✓ Kino o‘chirildi");
+
+        await loadDashboard();
 
     } catch (error) {
 
         alert("O‘chirishda xato:\n" + error.message);
-        console.error(error);
     }
 }
+
 
 function resetForm() {
 
@@ -236,6 +402,7 @@ function resetForm() {
         "poster",
         "video_url"
     ].forEach(id => {
+
         document.getElementById(id).value = "";
     });
 
@@ -245,27 +412,6 @@ function resetForm() {
         "🎬 Kino qo‘shish";
 }
 
-function filterMovies() {
-
-    const value =
-        document.getElementById("search")
-            .value
-            .trim()
-            .toLowerCase();
-
-    if (!value) {
-        renderMovies(movies);
-        return;
-    }
-
-    renderMovies(
-        movies.filter(movie =>
-            String(movie.title || "")
-                .toLowerCase()
-                .includes(value)
-        )
-    );
-}
 
 function escapeHtml(value) {
 
@@ -277,4 +423,5 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-loadMovies();
+
+loadDashboard();
