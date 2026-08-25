@@ -1,0 +1,9 @@
+[project]
+name = "iso-tv-backend"
+version = "1.0.0"
+description = "ISO TV Backend"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn"
+]
