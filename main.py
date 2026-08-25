@@ -3,6 +3,7 @@ import sqlite3
 from contextlib import closing
 
 from fastapi import FastAPI, HTTPException, Header
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -11,6 +12,7 @@ DB = "iso_tv.db"
 ADMIN_ID = 8829101708
 
 app = FastAPI(title="ISO TV API")
+app.mount("/admin", StaticFiles(directory="admin", html=True), name="admin")
 
 
 app.add_middleware(

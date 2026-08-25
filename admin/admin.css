@@ -1,0 +1,171 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #070707;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #242424;
+    position: sticky;
+    top: 0;
+    background: #070707;
+    z-index: 10;
+}
+
+.logo {
+    font-size: 27px;
+    font-weight: 900;
+}
+
+.logo span {
+    color: #ffd21f;
+}
+
+header small {
+    color: #777;
+}
+
+button {
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    background: #202020;
+    color: #fff;
+    font-weight: 700;
+}
+
+main {
+    max-width: 850px;
+    margin: auto;
+    padding: 18px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.stat,
+.panel {
+    background: #111;
+    border: 1px solid #242424;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.stat b {
+    display: block;
+    font-size: 30px;
+    color: #ffd21f;
+}
+
+.stat span {
+    color: #888;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 14px;
+    margin: 7px 0;
+    background: #191919;
+    border: 1px solid #292929;
+    border-radius: 12px;
+    color: #fff;
+    outline: none;
+}
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.vip {
+    display: block;
+    padding: 12px 0;
+    color: #ffd21f;
+}
+
+.vip input {
+    width: auto;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.primary {
+    background: #ffd21f;
+    color: #000;
+}
+
+.list-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.list-head h2 {
+    flex: 1;
+}
+
+.movie {
+    padding: 14px 0;
+    border-top: 1px solid #242424;
+}
+
+.movie-title {
+    font-weight: 800;
+    font-size: 17px;
+}
+
+.movie-meta {
+    color: #888;
+    margin: 6px 0 12px;
+    font-size: 13px;
+}
+
+.movie button {
+    margin-right: 6px;
+}
+
+.delete {
+    background: #3a1111;
+    color: #ff7777;
+}
+
+@media(max-width:600px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+
+    .list-head {
+        display: block;
+    }
+
+    .list-head input {
+        margin-bottom: 12px;
+    }
+}

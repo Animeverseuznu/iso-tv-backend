@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ISO TV Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">ISO<span>TV</span></div>
+        <small>ADMIN PANEL v1</small>
+    </div>
+    <button onclick="loadMovies()">↻ Yangilash</button>
+</header>
+
+<main>
+
+    <section class="stats">
+        <div class="stat">
+            <b id="totalMovies">0</b>
+            <span>Jami kino</span>
+        </div>
+
+        <div class="stat">
+            <b id="vipMovies">0</b>
+            <span>VIP</span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2 id="formTitle">🎬 Kino qo‘shish</h2>
+
+        <input type="hidden" id="movieId">
+
+        <input id="title" placeholder="Kino nomi">
+        <input id="genre" placeholder="Janr: action, comedy...">
+
+        <div class="row">
+            <input id="year" type="number" placeholder="Yil">
+            <input id="rating" type="number" step="0.1" placeholder="Reyting">
+        </div>
+
+        <input id="quality" placeholder="Sifat: 4K / Full HD / HD">
+
+        <textarea id="description"
+            placeholder="Kino haqida qisqacha ma'lumot"></textarea>
+
+        <input id="poster" placeholder="Poster URL">
+
+        <input id="video_url" placeholder="Video URL">
+
+        <label class="vip">
+            <input id="is_vip" type="checkbox">
+            👑 VIP kino
+        </label>
+
+        <div class="actions">
+            <button class="primary" onclick="saveMovie()">
+                💾 Saqlash
+            </button>
+
+            <button onclick="resetForm()">
+                Bekor qilish
+            </button>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="list-head">
+            <h2>🎞️ Kinolar</h2>
+            <input id="search"
+                   placeholder="🔎 Kino qidirish..."
+                   oninput="filterMovies()">
+        </div>
+
+        <div id="movieList"></div>
+    </section>
+
+</main>
+
+<script src="admin.js"></script>
+</body>
+</html>
