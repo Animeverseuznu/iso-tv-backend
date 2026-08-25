@@ -305,3 +305,127 @@ def update_movie(
             "success": True,
             "message": "Kino yangilandi"
         }
+
+
+# =========================
+# ADMIN V2 - STATISTICS
+# =========================
+
+@app.get("/api/admin/stats")
+def admin_stats(
+    x_admin_id: str | None = Header(default=None)
+):
+    check_admin(x_admin_id)
+
+    with closing(sqlite3.connect(DB)) as conn:
+        total = conn.execute(
+            "SELECT COUNT(*) FROM movies"
+        ).fetchone()[0]
+
+        vip = conn.execute(
+            "SELECT COUNT(*) FROM movies WHERE is_vip = 1"
+        ).fetchone()[0]
+
+        average_rating = conn.execute(
+            "SELECT COALESCE(AVG(rating), 0) FROM movies"
+        ).fetchone()[0]
+
+        genres = conn.execute("""
+            SELECT genre, COUNT(*) AS count
+            FROM movies
+            GROUP BY genre
+            ORDER BY count DESC
+        """).fetchall()
+
+        return {
+            "total": total,
+            "vip": vip,
+            "free": total - vip,
+            "average_rating": round(average_rating, 1),
+            "genres": [
+                {
+                    "genre": row[0],
+                    "count": row[1]
+                }
+                for row in genres
+            ]
+        }
+
+
+# =========================
+# ADMIN V2 - SEARCH
+# =========================
+
+@app.get("/api/admin/movies/search")
+def search_admin_movies(
+    q: str = "",
+    genre: str = "",
+    vip: int | None = None,
+    x_admin_id: str | None = Header(default=None)
+):
+    check_admin(x_admin_id)
+
+    query = """
+        SELECT *
+        FROM movies
+        WHERE 1 = 1
+    """
+
+    params = []
+
+    if q:
+        query += """
+            AND (
+                title LIKE ?
+                OR description LIKE ?
+            )
+        """
+        value = f"%{q}%"
+        params.extend([value, value])
+
+    if genre:
+        query += " AND genre = ?"
+        params.append(genre)
+
+    if vip is not None:
+        query += " AND is_vip = ?"
+        params.append(vip)
+
+    query += " ORDER BY id DESC"
+
+    with closing(sqlite3.connect(DB)) as conn:
+        conn.row_factory = sqlite3.Row
+
+        rows = conn.execute(
+            query,
+            params
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+
+
+# =========================
+# ADMIN V2 - GENRES
+# =========================
+
+@app.get("/api/admin/genres")
+def admin_genres(
+    x_admin_id: str | None = Header(default=None)
+):
+    check_admin(x_admin_id)
+
+    with closing(sqlite3.connect(DB)) as conn:
+        rows = conn.execute("""
+            SELECT genre, COUNT(*) AS count
+            FROM movies
+            GROUP BY genre
+            ORDER BY genre ASC
+        """).fetchall()
+
+        return [
+            {
+                "genre": row[0],
+                "count": row[1]
+            }
+            for row in rows
+        ]
